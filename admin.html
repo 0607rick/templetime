@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>廟會管理系統 - 新增活動</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; max-width: 600px; margin: auto; background: #f4f4f4; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, textarea { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        button { background: #d32f2f; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; width: 100%; font-size: 16px; }
+        button:hover { background: #b71c1c; }
+    </style>
+</head>
+<body>
+
+    <h2>🏮 廟會活動發佈</h2>
+    
+    <div class="form-group">
+        <label>活動日期 (必填)</label>
+        <input type="date" id="eventDate" required>
+    </div>
+    <div class="form-group">
+        <label>活動名稱 (必填)</label>
+        <input type="text" id="eventName" placeholder="例如：大甲媽祖遶境" required>
+    </div>
+    <div class="form-group">
+        <label>宮址/堂址 (必填)</label>
+        <input type="text" id="eventLocation" placeholder="請輸入地址" required>
+    </div>
+    <div class="form-group">
+        <label>相關連結 (FB或官網)</label>
+        <input type="url" id="eventLink" placeholder="https://...">
+    </div>
+    <div class="form-group">
+        <label>陣頭列表</label>
+        <textarea id="paradeList" rows="3" placeholder="列出參與陣頭"></textarea>
+    </div>
+    <div class="form-group">
+        <label>路關表 (連結或說明)</label>
+        <textarea id="routeMap" rows="3" placeholder="請輸入路線說明或圖片網址"></textarea>
+    </div>
+    <div class="form-group">
+        <label>其他備註</label>
+        <textarea id="notes" rows="2"></textarea>
+    </div>
+
+    <button onclick="uploadData()">發佈活動</button>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        // --- 替換成你的 Firebase Config ---
+        const firebaseConfig = {
+            apiKey: "你的API_KEY",
+            authDomain: "你的專案ID.firebaseapp.com",
+            databaseURL: "https://你的專案ID-default-rtdb.firebaseio.com",
+            projectId: "你的專案ID",
+            storageBucket: "你的專案ID.appspot.com",
+            messagingSenderId: "...",
+            appId: "..."
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // 送出資料的函數
+        window.uploadData = function() {
+            const date = document.getElementById('eventDate').value;
+            const name = document.getElementById('eventName').value;
+            const location = document.getElementById('eventLocation').value;
+
+            if(!date || !name || !location) {
+                alert("請填寫必填欄位！");
+                return;
+            }
+
+            const eventData = {
+                date: date,
+                name: name,
+                location: location,
+                link: document.getElementById('eventLink').value,
+                paradeList: document.getElementById('paradeList').value,
+                routeMap: document.getElementById('routeMap').value,
+                notes: document.getElementById('notes').value
+            };
+
+            // 推送到 Firebase 的 'events' 路徑下
+            push(ref(db, 'events'), eventData)
+                .then(() => {
+                    alert("發佈成功！");
+                    // 清空表單
+                    document.querySelectorAll('input, textarea').forEach(el => el.value = '');
+                })
+                .catch((error) => alert("出錯了：" + error.message));
+        }
+    </script>
+</body>
+</html>
