@@ -139,14 +139,23 @@
         onValue(ref(db, 'events'), (snapshot) => {
             allEvents = [];
             const data = snapshot.val();
+            
+            // 無論有無資料，只要讀取完成就更新時間
+            const now = new Date();
+            const timeStr = `${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+            const updateElem = document.getElementById('lastUpdateText');
+            if (updateElem) updateElem.innerText = `最後更新時間：${timeStr}`;
+
             if(data) {
-                for(let id in data) allEvents.push({ id, ...data[id] });
-                const now = new Date();
-                const timeStr = `${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-                document.getElementById('lastUpdateText').innerText = `最後更新時間：${timeStr}`;
+                for(let id in data) {
+                    // Index 端與 Admin 端的 push 結構略有不同，請依據該檔案原本寫法
+                    allEvents.push({ id, ...data[id] }); 
+                }
             }
             renderCalendar();
-            if(selectedDate) refreshEventList(selectedDate);
+            
+            // 如果是 Admin 端，記得保留這行
+            if(typeof selectedDate !== 'undefined' && selectedDate) refreshEventList(selectedDate);
         });
 
         function renderCalendar() {
