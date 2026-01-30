@@ -136,27 +136,42 @@
             }
         }
 
-        onValue(ref(db, 'events'), (snapshot) => {
-            allEvents = [];
-            const data = snapshot.val();
-            
-            // 無論有無資料，只要讀取完成就更新時間
+        // --- 1. 監聽最後更新時間 ---
+        onValue(ref(db, 'lastUpdate'), (snapshot) => {
+            const time = snapshot.val();
+            if (time) {
+                document.getElementById('lastUpdateText').innerText = `最後更新時間：${time}`;
+            } else {
+                document.getElementById('lastUpdateText').innerText = `最後更新時間：尚無紀錄`;
+            }
+        });
+
+        // --- 2. 定義更新時間的函數 ---
+        function updateTimestamp() {
             const now = new Date();
             const timeStr = `${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-            const updateElem = document.getElementById('lastUpdateText');
-            if (updateElem) updateElem.innerText = `最後更新時間：${timeStr}`;
+            update(ref(db), { lastUpdate: timeStr });
+        }
 
-            if(data) {
-                for(let id in data) {
-                    // Index 端與 Admin 端的 push 結構略有不同，請依據該檔案原本寫法
-                    allEvents.push({ id, ...data[id] }); 
-                }
+        // --- 3. 在原本的 saveEvent 成功後呼叫它 ---
+        window.saveEvent = () => {
+            // ... 前面的資料整理代碼 ...
+            const action = id ? update(ref(db, `events/${id}`), data) : push(ref(db, 'events'), data);
+            action.then(() => { 
+                alert("完成發佈"); 
+                updateTimestamp(); // <--- 這裡新增：成功後才去改時間
+                resetForm(); 
+            });
+        };
+
+        // --- 4. 在刪除成功後也呼叫它 ---
+        window.deleteEvent = (id, name) => { 
+            if(confirm(`確定要刪除「${name}」？`)) {
+                remove(ref(db, `events/${id}`)).then(() => {
+                    updateTimestamp(); // <--- 這裡也新增
+                });
             }
-            renderCalendar();
-            
-            // 如果是 Admin 端，記得保留這行
-            if(typeof selectedDate !== 'undefined' && selectedDate) refreshEventList(selectedDate);
-        });
+        };
 
         function renderCalendar() {
             const grid = document.getElementById('calendarGrid');

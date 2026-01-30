@@ -114,26 +114,21 @@
             }
         }
 
+        // 監聽活動資料 (原本的)
         onValue(ref(db, 'events'), (snapshot) => {
             allEvents = [];
             const data = snapshot.val();
-            
-            // 無論有無資料，只要讀取完成就更新時間
-            const now = new Date();
-            const timeStr = `${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-            const updateElem = document.getElementById('lastUpdateText');
-            if (updateElem) updateElem.innerText = `最後更新時間：${timeStr}`;
-
-            if(data) {
-                for(let id in data) {
-                    // Index 端與 Admin 端的 push 結構略有不同，請依據該檔案原本寫法
-                    allEvents.push({ id, ...data[id] }); 
-                }
-            }
+            if(data) for(let id in data) allEvents.push(data[id]);
             renderCalendar();
-            
-            // 如果是 Admin 端，記得保留這行
-            if(typeof selectedDate !== 'undefined' && selectedDate) refreshEventList(selectedDate);
+        });
+
+        // 監聽「最後更新時間」路徑 (新增的)
+        onValue(ref(db, 'lastUpdate'), (snapshot) => {
+            const time = snapshot.val();
+            const updateElem = document.getElementById('lastUpdateText');
+            if (updateElem) {
+                updateElem.innerText = `最後更新時間：${time || '尚未更新'}`;
+            }
         });
 
         function renderCalendar() {
