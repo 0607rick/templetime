@@ -3,18 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>廟會活動編輯器</title>
+    <title>全台廟會活動編輯器</title>
     <script src="https://cdn.jsdelivr.net/npm/lunar-javascript/lunar.js"></script>
     <style>
         :root { --primary-red: #d32f2f; --dark-blue: #34495e; --bg-cream: #f9f7f2; }
         body { font-family: "Microsoft JhengHei", sans-serif; margin: 0; padding: 10px; background: var(--bg-cream); }
         .page-header { text-align: center; margin-bottom: 20px; }
+        
+        /* 管理端專屬資訊區 */
+        .info-section { font-size: 14px; color: #555; line-height: 1.6; margin: 15px auto; max-width: 800px; text-align: center; }
+        .notice-box { 
+            background: #fff3f3; border-radius: 8px; padding: 10px; display: inline-block; 
+            margin-top: 10px; border: 1px solid #ffebeb; text-align: left; 
+        }
+
         .calendar-container { max-width: 900px; margin: 0 auto; background: white; border-radius: 8px; box-shadow: 0 2px 15px rgba(0,0,0,0.1); padding: 20px; }
         
-        /* 導覽列排版：左(年) 中(月) 右(按鈕) */
+        /* 導覽列排版 */
         .calendar-nav { display: grid; grid-template-columns: 1fr 1fr 1fr; align-items: center; margin-bottom: 20px; }
-        
-        /* 年份下拉選單樣式 */
         .nav-year select { 
             font-size: 24px; font-weight: bold; border: none; background: transparent; 
             color: var(--dark-blue); cursor: pointer; outline: none; appearance: none;
@@ -35,7 +41,7 @@
         .lunar-num { font-size: 11px; color: #999; }
         .event-tag { background: var(--primary-red); color: white; font-size: 11px; padding: 2px 4px; border-radius: 3px; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        /* 彈窗樣式優化 (符合圖片) */
+        /* 彈窗樣式 */
         #modal-overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index: 999; }
         #admin-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 25px; z-index: 1000; width: 95%; max-width: 500px; max-height: 90vh; overflow-y: auto; border-radius: 15px; box-shadow: 0 5px 25px rgba(0,0,0,0.2); }
         
@@ -51,7 +57,17 @@
     </style>
 </head>
 <body>
-    <div class="page-header"><h1>🏮 廟會活動編輯器</h1></div>
+    <div class="page-header">
+        <h1>🏮 全台廟會活動編輯器</h1>
+        <div class="info-section">
+            <p id="lastUpdateText" style="margin: 5px 0; font-weight: bold;">最後更新時間：載入中...</p>
+            <p style="margin: 5px 0;">🎬 一拍一剪官方網站：<a href="https://20251p1ctw.github.io/1p1c/" target="_blank" style="color: var(--dark-blue); text-decoration: underline;">點我前往</a></p>
+            <div class="notice-box">
+                <p style="margin: 0; font-size: 13px;">⚠️ 此為<b>管理後台</b>。所有修改將同步至前台時刻表。</p>
+            </div>
+        </div>
+    </div>
+
     <div class="calendar-container">
         <div class="calendar-nav">
             <div class="nav-year">
@@ -70,40 +86,17 @@
     <div id="modal-overlay" onclick="closeAdminModal()"></div>
     <div id="admin-modal">
         <h2 id="selected-date-display" style="font-size:20px; margin-bottom:20px;"></h2>
-        
         <div id="event-list-container"></div>
-
         <hr style="margin:25px 0; border:0; border-top:1px dashed #ccc;">
-
         <div id="form-section">
-            <p id="form-title" style="font-weight:bold; color:#e74c3c; font-size: 18px; margin-bottom: 15px;">新增活動</p>
+            <p id="form-title" style="font-weight:bold; color:#e74c3c; font-size: 18px; margin-bottom: 15px;">➕ 新增活動</p>
             <input type="hidden" id="editing-id">
-            
-            <div class="form-group">
-                <label>活動名稱 (必填)</label>
-                <input type="text" id="eventName" placeholder="例如：某某宮繞境大典">
-            </div>
-            <div class="form-group">
-                <label>宮址/堂址 (必填)</label>
-                <input type="text" id="eventLocation" placeholder="請輸入完整地址">
-            </div>
-            <div class="form-group">
-                <label>相關連結</label>
-                <input type="url" id="eventLink" placeholder="FB粉專或官網連結">
-            </div>
-            <div class="form-group">
-                <label>陣頭列表</label>
-                <textarea id="paradeList" rows="3" placeholder="開路鼓、神將、轎班..."></textarea>
-            </div>
-            <div class="form-group">
-                <label>路關表</label>
-                <textarea id="routeMap" rows="3" placeholder="請描述行程路線"></textarea>
-            </div>
-            <div class="form-group">
-                <label>其他備註</label>
-                <textarea id="notes" rows="2" placeholder="例如：供應晚餐、紅壇位置"></textarea>
-            </div>
-
+            <div class="form-group"><label>活動名稱 (必填)</label><input type="text" id="eventName" placeholder="例如：某某宮繞境大典"></div>
+            <div class="form-group"><label>宮址/堂址 (必填)</label><input type="text" id="eventLocation" placeholder="請輸入完整地址"></div>
+            <div class="form-group"><label>相關連結</label><input type="url" id="eventLink" placeholder="FB粉專或官網連結"></div>
+            <div class="form-group"><label>陣頭列表</label><textarea id="paradeList" rows="3" placeholder="開路鼓、神將、轎班..."></textarea></div>
+            <div class="form-group"><label>路關表</label><textarea id="routeMap" rows="3" placeholder="請描述行程路線"></textarea></div>
+            <div class="form-group"><label>其他備註</label><textarea id="notes" rows="2" placeholder="例如：供應晚餐、紅壇位置"></textarea></div>
             <div class="btn-row">
                 <button id="submit-btn" class="btn-save" onclick="saveEvent()">加入並發佈</button>
                 <button class="btn-cancel" onclick="closeAdminModal()">取消</button>
@@ -131,7 +124,6 @@
         let selectedDate = "";
         let allEvents = [];
 
-        // 初始化年份下拉選單 (目前年份 -5 到 +10)
         function initYearSelect() {
             const yearSelect = document.getElementById('yearSelect');
             const currentYear = new Date().getFullYear();
@@ -147,7 +139,12 @@
         onValue(ref(db, 'events'), (snapshot) => {
             allEvents = [];
             const data = snapshot.val();
-            if(data) for(let id in data) allEvents.push({ id, ...data[id] });
+            if(data) {
+                for(let id in data) allEvents.push({ id, ...data[id] });
+                const now = new Date();
+                const timeStr = `${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+                document.getElementById('lastUpdateText').innerText = `最後更新時間：${timeStr}`;
+            }
             renderCalendar();
             if(selectedDate) refreshEventList(selectedDate);
         });
@@ -156,19 +153,14 @@
             const grid = document.getElementById('calendarGrid');
             const year = currentNavDate.getFullYear();
             const month = currentNavDate.getMonth();
-            
-            // 更新 UI 顯示
             document.getElementById('yearSelect').value = year;
             document.getElementById('displayMonth').innerText = `${month + 1}月`;
             grid.innerHTML = '';
-
             const today = new Date();
             const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
             ['日','一','二','三','四','五','六'].forEach(d => grid.innerHTML += `<div class="day-label">週${d}</div>`);
-            
             const firstDay = new Date(year, month, 1).getDay();
             for (let i = 0; i < firstDay; i++) grid.innerHTML += `<div class="day"></div>`;
-
             for (let d = 1; d <= new Date(year, month + 1, 0).getDate(); d++) {
                 const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
                 const solar = new Date(year, month, d);
@@ -216,21 +208,15 @@
             const name = document.getElementById('eventName').value;
             const loc = document.getElementById('eventLocation').value;
             if(!name || !loc) return alert("請填寫活動名稱與宮址");
-            
             const data = {
-                date: selectedDate,
-                name: name,
-                location: loc,
+                date: selectedDate, name, location: loc,
                 link: document.getElementById('eventLink').value,
                 paradeList: document.getElementById('paradeList').value,
                 routeMap: document.getElementById('routeMap').value,
                 notes: document.getElementById('notes').value
             };
             const action = id ? update(ref(db, `events/${id}`), data) : push(ref(db, 'events'), data);
-            action.then(() => { 
-                alert("完成發佈"); 
-                resetForm(); 
-            }).catch(err => alert("錯誤: " + err.message));
+            action.then(() => { alert("完成發佈"); resetForm(); }).catch(err => alert("錯誤: " + err.message));
         };
 
         window.editEvent = (id) => {
@@ -263,17 +249,16 @@
         };
 
         window.changeMonth = (val) => {
-            // 關鍵修正：先將日期設為 1 號，避免月底溢出（如 1/31 跳 2/31 變 3/3）
             currentNavDate.setDate(1); 
             currentNavDate.setMonth(currentNavDate.getMonth() + val);
             renderCalendar();
         };
+
         window.goToToday = () => {
-            currentNavDate = new Date(); // 重新取得現在的時間（包含正確的日期）
+            currentNavDate = new Date();
             renderCalendar();
         };
 
-        // 啟動初始化
         initYearSelect();
         renderCalendar();
     </script>

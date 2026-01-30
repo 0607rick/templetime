@@ -3,18 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>廟會活動時刻表</title>
+    <title>全台廟會活動時刻表</title>
     <script src="https://cdn.jsdelivr.net/npm/lunar-javascript/lunar.js"></script>
     <style>
         :root { --primary-red: #d32f2f; --dark-blue: #34495e; --bg-cream: #f9f7f2; }
         body { font-family: "Microsoft JhengHei", sans-serif; margin: 0; padding: 10px; background: var(--bg-cream); }
         .page-header { text-align: center; margin-bottom: 20px; }
+        
+        /* 資訊區塊樣式 */
+        .info-section { font-size: 14px; color: #555; line-height: 1.8; margin: 15px auto; max-width: 800px; }
+        .info-link { color: var(--primary-red); text-decoration: none; font-weight: bold; }
+        .info-link:hover { text-decoration: underline; }
+        .notice-box { 
+            background: #fff3f3; border-radius: 8px; padding: 12px; display: inline-block; 
+            margin-top: 15px; border: 1px solid #ffebeb; text-align: left; 
+        }
+        .line-link { color: #00b900; font-weight: bold; text-decoration: none; }
+
         .calendar-container { max-width: 900px; margin: 0 auto; background: white; border-radius: 8px; box-shadow: 0 2px 15px rgba(0,0,0,0.1); padding: 20px; }
         
-        /* 導覽列排版：左(年) 中(月) 右(按鈕) */
+        /* 導覽列排版 */
         .calendar-nav { display: grid; grid-template-columns: 1fr 1fr 1fr; align-items: center; margin-bottom: 20px; }
-        
-        /* 年份下拉選單樣式：與 Admin 端一致 */
         .nav-year select { 
             font-size: 24px; font-weight: bold; border: none; background: transparent; 
             color: var(--dark-blue); cursor: pointer; outline: none; appearance: none;
@@ -36,7 +45,29 @@
     </style>
 </head>
 <body>
-    <div class="page-header"><h1>🏮 廟會活動時刻表</h1></div>
+    <div class="page-header">
+        <h1>🏮 全台廟會活動時刻表</h1>
+        
+        <div class="info-section">
+            <p id="lastUpdateText" style="margin: 5px 0; font-weight: bold;">最後更新時間：載入中...</p>
+            
+            <p style="margin: 5px 0;">
+                📝 如需投稿請按我：<a href="https://forms.gle/4BAqXWdR9SL2TcJ88" target="_blank" class="info-link">投稿連結</a>
+            </p>
+            
+            <p style="margin: 5px 0;">
+                🎬 此網站為一拍一剪編輯：<a href="https://20251p1ctw.github.io/1p1c/" target="_blank" style="color: var(--dark-blue); text-decoration: underline;">點我回一拍一剪網站</a>
+            </p>
+            
+            <div class="notice-box">
+                <p style="margin: 0; font-size: 13px;">⚠️ 部分陣容、接駕之訊息依主家、廟方公佈為主，如有資訊落差敬請見諒。</p>
+                <p style="margin: 8px 0 0 0; font-size: 13px;">💬 如有資訊錯誤或需要補充，歡迎至一拍一剪官方LINE：
+                    <a href="https://line.me/R/ti/p/@632jsgvl" target="_blank" class="line-link">@632jsgvl</a> 小編會盡快更改～
+                </p>
+            </div>
+        </div>
+    </div>
+
     <div class="calendar-container">
         <div class="calendar-nav">
             <div class="nav-year">
@@ -71,7 +102,6 @@
         let currentNavDate = new Date();
         let allEvents = [];
 
-        // 初始化年份下拉選單
         function initYearSelect() {
             const yearSelect = document.getElementById('yearSelect');
             const currentYear = new Date().getFullYear();
@@ -87,7 +117,13 @@
         onValue(ref(db, 'events'), (snapshot) => {
             allEvents = [];
             const data = snapshot.val();
-            if(data) for(let id in data) allEvents.push(data[id]);
+            if(data) {
+                for(let id in data) allEvents.push(data[id]);
+                // 更新「最後更新時間」為當前系統時間
+                const now = new Date();
+                const timeStr = `${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+                document.getElementById('lastUpdateText').innerText = `最後更新時間：${timeStr}`;
+            }
             renderCalendar();
         });
 
@@ -96,7 +132,6 @@
             const year = currentNavDate.getFullYear();
             const month = currentNavDate.getMonth();
             
-            // 同步年份選單與月份文字
             document.getElementById('yearSelect').value = year;
             document.getElementById('displayMonth').innerText = `${month + 1}月`;
             grid.innerHTML = '';
@@ -120,24 +155,22 @@
             }
         }
 
-        // 跳轉年份
         window.jumpToYear = (year) => {
             currentNavDate.setFullYear(parseInt(year));
             renderCalendar();
         };
 
         window.changeMonth = (val) => {
-            // 關鍵修正：先將日期設為 1 號，避免月底溢出（如 1/31 跳 2/31 變 3/3）
             currentNavDate.setDate(1); 
             currentNavDate.setMonth(currentNavDate.getMonth() + val);
             renderCalendar();
         };
 
         window.goToToday = () => {
-            currentNavDate = new Date(); // 重新取得現在的時間（包含正確的日期）
+            currentNavDate = new Date();
             renderCalendar();
         };
-        // 啟動執行
+
         initYearSelect();
         renderCalendar();
     </script>
